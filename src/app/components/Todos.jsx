@@ -1,4 +1,5 @@
 "use client";
+
 import { Suspense, useContext, useState, useEffect, useRef } from "react";
 import { ImFilesEmpty } from "react-icons/im";
 import { TodoContext } from "../context/contextProvider";
@@ -11,8 +12,10 @@ export default function Todos() {
     markAsDone,
     deleteTodo,
     viewTodo,
-    setEditingTodo,
     setShowNoteModal,
+    setEditingTodo,
+    error,
+    loading,
   } = useContext(TodoContext);
 
   const [openModalId, setOpenModalId] = useState(null);
@@ -25,28 +28,24 @@ export default function Todos() {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // Get bounding box of the button
     const buttonRect = e.currentTarget.getBoundingClientRect();
 
-    // Calculate modal position based on button position
     let left = buttonRect.left + window.scrollX;
-    let top = buttonRect.bottom + window.scrollY + 5 - 230; // Add slight spacing below
+    let top = buttonRect.bottom + window.scrollY + 5;
 
-    // Adjust to keep modal within viewport horizontally
     if (left + modalWidth > viewportWidth) {
       left = viewportWidth - modalWidth - 10;
     }
 
-    // Adjust to keep modal within viewport vertically
     if (top + modalHeight > viewportHeight + window.scrollY) {
-      top = buttonRect.top + window.scrollY - modalHeight - 5; // Show above
+      top = buttonRect.top + window.scrollY - modalHeight - 5;
     }
 
-    // Final safeguard
     left = Math.max(10, Math.min(left, viewportWidth - modalWidth - 10));
     top = Math.max(10, top);
 
-    // Toggle modal
+    console.log(`Modal Position for Todo ID ${todoId}:`, { top, left });
+
     if (openModalId === todoId) {
       setOpenModalId(null);
       return;
@@ -56,7 +55,6 @@ export default function Todos() {
     setModalPosition({ top, left });
   };
 
-  // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -73,7 +71,17 @@ export default function Todos() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <div>
-        {filteredTodos.length === 0 ? (
+        {loading ? (
+          <div className="justify-center flex flex-col items-center h-[40vh] gap-4">
+            <p className="text-center text-sm text-gray-500">
+              Loading todos...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="justify-center flex flex-col items-center h-[40vh] gap-4">
+            <p className="text-center text-sm text-red-500">{error}</p>
+          </div>
+        ) : filteredTodos.length === 0 ? (
           <div className="justify-center flex flex-col items-center h-[40vh] gap-4">
             <ImFilesEmpty className="size-20 text-neutral-500" />
             <p className="text-center text-sm text-gray-500">Empty List</p>
@@ -81,7 +89,7 @@ export default function Todos() {
         ) : (
           <div className="py-5 flex flex-col gap-5 relative">
             {filteredTodos.map((todo) => (
-              <TodoCard key={todo.id}>
+              <TodoCard key={todo.id} id={todo.id}>
                 <div className="flex flex-col justify-between w-5/6">
                   <h3 className="text-sm font-semibold">
                     {todo.title.length > 15

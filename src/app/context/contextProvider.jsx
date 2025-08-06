@@ -15,6 +15,7 @@ export const TodoContext = createContext({
   toggleTodo: () => {},
   addTodo: () => {},
   deleteTodo: () => {},
+  editTodo: () => {},
   showNoteModal: false,
   setShowNoteModal: () => {},
   editingTodo: null,
@@ -29,6 +30,10 @@ export const TodoContext = createContext({
   setViewingTodo: () => {},
   showViewModal: false,
   setShowViewModal: () => {},
+  error: null,
+  setError: () => {},
+  loading: false,
+  setLoading: () => {},
 });
 
 export const TodoProvider = ({ children }) => {
@@ -36,36 +41,68 @@ export const TodoProvider = ({ children }) => {
   const [text, setText] = useState("");
   const [todos, setTodos] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("all"); // ✅ Correct usage
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
   const [viewingTodo, setViewingTodo] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedTodos = localStorage.getItem("todos");
-    if (storedTodos) {
-      setTodos(JSON.parse(storedTodos));
-    } else {
-      const fetchTodos = async () => {
-        try {
-          const res = await fetch("https://jsonplaceholder.typicode.com/posts");
-          const data = await res.json();
-          const todosWithCompletion = data.slice(0, 100).map((todo) => ({
-            ...todo,
-            completed: false,
-          }));
-          setTodos(todosWithCompletion);
-        } catch (error) {
-          console.error("Failed to fetch todos:", error);
-        }
-      };
+    const fetchTodos = async () => {
+      setLoading(true);
+      setError(null);
 
-      fetchTodos();
-    }
+      // Log localStorage content
+      const storedTodos = localStorage.getItem("todos");
+      console.log("Stored todos in localStorage:", storedTodos);
+
+      if (storedTodos) {
+        try {
+          const parsedTodos = JSON.parse(storedTodos);
+          if (Array.isArray(parsedTodos)) {
+            console.log("Parsed todos from localStorage:", parsedTodos);
+            setTodos(parsedTodos);
+            setLoading(false);
+            return;
+          } else {
+            console.error("Invalid todos format in localStorage, resetting...");
+            localStorage.removeItem("todos"); // Clear corrupted data
+          }
+        } catch (error) {
+          console.error("Failed to parse todos from localStorage:", error);
+          localStorage.removeItem("todos"); // Clear corrupted data
+        }
+      }
+
+      // Fetch from API if no valid localStorage data
+      try {
+        console.log("Fetching todos from API...");
+        const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        const todosWithCompletion = data.slice(0, 100).map((todo) => ({
+          ...todo,
+          completed: false,
+        }));
+        console.log("Fetched todos from API:", todosWithCompletion);
+        setTodos(todosWithCompletion);
+      } catch (error) {
+        console.error("Failed to fetch todos:", error);
+        setError("Failed to load todos. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTodos();
   }, []);
 
   useEffect(() => {
+    console.log("Saving todos to localStorage:", todos);
     localStorage.setItem("todos", JSON.stringify(todos));
   }, [todos]);
 
@@ -82,6 +119,8 @@ export const TodoProvider = ({ children }) => {
       if (filter === "incompleted") return !todo.completed;
       return true;
     });
+
+  console.log("Filtered todos:", filteredTodos);
 
   const toggleTodo = (id) => {
     setTodos(
@@ -103,6 +142,14 @@ export const TodoProvider = ({ children }) => {
     setTodos((prevTodos) =>
       prevTodos.map((todo) =>
         todo.id === id ? { ...todo, completed: true } : todo
+      )
+    );
+  };
+
+  const editTodo = (updatedTodo) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.id === updatedTodo.id ? { ...todo, ...updatedTodo } : todo
       )
     );
   };
@@ -130,6 +177,7 @@ export const TodoProvider = ({ children }) => {
         toggleTodo,
         addTodo,
         deleteTodo,
+        editTodo,
         showNoteModal,
         setShowNoteModal,
         editingTodo,
@@ -140,6 +188,10 @@ export const TodoProvider = ({ children }) => {
         setViewingTodo,
         showViewModal,
         setShowViewModal,
+        error,
+        setError,
+        loading,
+        setLoading,
       }}
     >
       {children}
