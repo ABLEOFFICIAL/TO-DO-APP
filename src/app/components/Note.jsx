@@ -9,7 +9,7 @@ export default function Note() {
     showNoteModal,
     setShowNoteModal,
     addTodo,
-    editTodo, // <-- Add this from context
+    editTodo,
     editingTodo,
     setEditingTodo,
     title,
@@ -18,7 +18,7 @@ export default function Note() {
     setText,
   } = useContext(TodoContext);
 
-  // Pre-fill modal when editing
+  // Pre-fill form if editing
   useEffect(() => {
     if (editingTodo) {
       setTitle(editingTodo.title);
@@ -30,14 +30,12 @@ export default function Note() {
     if (title.trim() === "" && text.trim() === "") return;
 
     if (editingTodo) {
-      // We're editing
       editTodo({
         ...editingTodo,
         title,
         body: text,
       });
     } else {
-      // We're creating
       const newTodo = {
         id: uuidv4(),
         title,
@@ -57,13 +55,19 @@ export default function Note() {
 
   return (
     <div
-      className={`fixed inset-0 bg-[#e8e8e9] z-40 ${
+      className={`fixed inset-0 bg-[#e8e8e9]/60 z-40 ${
         showNoteModal ? "" : "hidden"
       }`}
     >
-      <div className="fixed bg-[#fff] z-50 w-4/5 h-auto shadow-2xl rounded-2xl mx-auto top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pt-15 px-3 pb-3">
+      <div
+        className="fixed bg-white z-50 w-[90%] sm:w-[70%] md:w-[50%] lg:w-[40%] xl:w-[30%]
+                   max-h-[90vh] overflow-y-auto shadow-2xl rounded-2xl 
+                   top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
+                   pt-10 px-5 pb-5"
+      >
+        {/* Save/Close Button */}
         <div
-          className="border-[1px] border-[#e8e8e9] rounded-full inline px-2.5 py-1 absolute top-2 right-2 cursor-pointer"
+          className="border border-neutral-200 rounded-full px-2.5 py-1 absolute top-3 right-3 cursor-pointer hover:bg-neutral-100 transition"
           onClick={handleSaveNote}
         >
           <svg
@@ -79,32 +83,30 @@ export default function Note() {
             />
           </svg>
         </div>
-        <div className="flex flex-col gap-1">
+
+        {/* Form */}
+        <div className="flex flex-col gap-4">
           <input
             type="text"
             name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
-            className="focus:outline-0 w-full text-lg font-semibold"
+            className="focus:outline-none w-full text-xl font-semibold"
           />
-          <div>
-            <span className="text-base font-normal text-neutral-950/60 ">
-              {new Date().toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
-          </div>
-          <div>
-            <textarea
-              name="text-area"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Write notes"
-              className="min-h-44 w-full focus:outline-0 text-sm font-normal"
-            ></textarea>
-          </div>
+          <span className="text-sm text-neutral-500">
+            {new Date().toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+            })}
+          </span>
+          <textarea
+            name="text-area"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Write notes..."
+            className="min-h-48 w-full focus:outline-none text-base resize-none"
+          ></textarea>
         </div>
       </div>
     </div>
