@@ -43,6 +43,8 @@ export default function ViewTodoMd() {
   }, [setViewingTodoMD]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const handleClick = () => setViewMdOptions(false);
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
