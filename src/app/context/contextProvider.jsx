@@ -121,7 +121,7 @@ export const TodoProvider = ({ children }) => {
     })
     .filter((todo) => {
       if (filter === "completed") return todo.completed;
-      if (filter === "incompleted") return !todo.completed;
+      if (filter === "incomplete") return !todo.completed;
       return true;
     });
 
