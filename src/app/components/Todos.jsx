@@ -130,7 +130,7 @@ export default function Todos() {
             <p className="text-center text-sm text-gray-500">Empty List</p>
           </div>
         ) : (
-          <>
+          <div className=" h-[calc(100vh-100px)] overflow-y-auto">
             <div className="py-5 flex flex-col gap-5 relative">
               {filteredTodos.map((todo) => (
                 <TodoCard key={todo.id} id={todo.id}>
@@ -190,7 +190,7 @@ export default function Todos() {
                 }}
               />
             )}
-          </>
+          </div>
         )}
       </div>
     </Suspense>

@@ -37,7 +37,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="bg-[#f5f5f5]">
+    <div className="bg-[#f5f5f5] lg:h-screen md:overflow-hidden">
       <div className="lg:flex lg:justify-between block lg:w-[1500px] ">
         {/* side bar */}
         <div className="h-screen w-1/5 hidden lg:block ">
