@@ -18,7 +18,7 @@ export default function Category() {
   const { filter, setFilter } = useContext(TodoContext);
 
   return (
-    <div className="flex gap-3 mt-2">
+    <div className="flex gap-3 mt-2 lg:hidden">
       {["All Tasks", "Completed", "Incompleted"].map((cat, idx) => {
         const categoryValue = cat.toLowerCase().replace(" tasks", "");
         return (

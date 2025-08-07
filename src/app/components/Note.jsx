@@ -79,17 +79,17 @@ export default function Note() {
             />
           </svg>
         </div>
-        <div>
+        <div className="flex flex-col gap-1">
           <input
             type="text"
             name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
-            className="focus:outline-0 w-full"
+            className="focus:outline-0 w-full text-lg font-semibold"
           />
           <div>
-            <span className="timeCreated">
+            <span className="text-base font-normal text-neutral-950/60 ">
               {new Date().toLocaleDateString("en-US", {
                 month: "long",
                 day: "numeric",
@@ -102,7 +102,7 @@ export default function Note() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Write notes"
-              className="min-h-44 w-full focus:outline-0"
+              className="min-h-44 w-full focus:outline-0 text-sm font-normal"
             ></textarea>
           </div>
         </div>

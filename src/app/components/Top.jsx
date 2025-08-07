@@ -24,7 +24,7 @@ export default function Top() {
   if (!mounted) return null;
 
   return (
-    <header className="relative w-full mx-auto flex items-center">
+    <header className="relative w-full lg:w-64 mx-auto flex items-center">
       <IoMdSearch className="absolute left-4 cursor-pointer size-6" />
 
       <input

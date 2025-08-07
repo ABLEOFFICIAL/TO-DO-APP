@@ -6,6 +6,49 @@ import { TodoContext } from "../context/contextProvider";
 import TodoCard from "./TodoCard";
 import Dots from "./Dots";
 
+import { forwardRef } from "react";
+import { usePathname } from "next/navigation";
+
+export const Options = forwardRef(function Options(
+  { top, left, mark, edit, view, deleteTodo },
+  ref
+) {
+  const pathname = usePathname();
+  const showView = pathname === "/"; // ✅ correctly declare the variable
+
+  return (
+    <div
+      ref={ref}
+      className="z-50 w-36 bg-[#f5f5f5] shadow-md rounded-lg flex flex-col text-sm p-2"
+      style={{
+        position: "absolute",
+        top: `${top}px`,
+        left: `${left}px`,
+      }}
+    >
+      <button onClick={mark} className="hover:bg-gray-100 p-2 text-left">
+        Mark as done
+      </button>
+      <button onClick={edit} className="hover:bg-gray-100 p-2 text-left">
+        Edit
+      </button>
+
+      {showView && ( // ✅ conditionally render this block
+        <button onClick={view} className="hover:bg-gray-100 p-2 text-left">
+          View
+        </button>
+      )}
+
+      <button
+        onClick={deleteTodo}
+        className="hover:bg-gray-100 p-2 text-left text-red-500"
+      >
+        Delete
+      </button>
+    </div>
+  );
+});
+
 export default function Todos() {
   const {
     filteredTodos,
@@ -23,7 +66,7 @@ export default function Todos() {
   const modalRef = useRef(null);
 
   const handleMoreOptionsClick = (e, todoId) => {
-    const modalWidth = 180;
+    const modalWidth = 160;
     const modalHeight = 160;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -31,7 +74,7 @@ export default function Todos() {
     const buttonRect = e.currentTarget.getBoundingClientRect();
 
     let left = buttonRect.left + window.scrollX;
-    let top = buttonRect.bottom + window.scrollY + 5;
+    let top = buttonRect.bottom + window.scrollY + 5 - 50;
 
     if (left + modalWidth > viewportWidth) {
       left = viewportWidth - modalWidth - 10;
@@ -87,87 +130,67 @@ export default function Todos() {
             <p className="text-center text-sm text-gray-500">Empty List</p>
           </div>
         ) : (
-          <div className="py-5 flex flex-col gap-5 relative">
-            {filteredTodos.map((todo) => (
-              <TodoCard key={todo.id} id={todo.id}>
-                <div className="flex flex-col justify-between w-5/6">
-                  <h3 className="text-sm font-semibold">
-                    {todo.title.length > 15
-                      ? todo.title.slice(0, 15) + "..."
-                      : todo.title}
-                  </h3>
-                  <p className="text-xs font-normal w-5/6">
-                    {todo.body.length > 80
-                      ? todo.body.slice(0, 80) + "..."
-                      : todo.body}
-                  </p>
-                  <span className="text-neutral-400 text-xs font-medium">
-                    {new Date().toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
-                </div>
+          <>
+            <div className="py-5 flex flex-col gap-5 relative">
+              {filteredTodos.map((todo) => (
+                <TodoCard key={todo.id} id={todo.id}>
+                  <div className="flex flex-col justify-between w-5/6">
+                    <h3 className="text-sm font-semibold">
+                      {todo.title.length > 15
+                        ? todo.title.slice(0, 15) + "..."
+                        : todo.title}
+                    </h3>
+                    <p className="text-xs font-normal w-5/6">
+                      {todo.body.length > 80
+                        ? todo.body.slice(0, 80) + "..."
+                        : todo.body}
+                    </p>
+                    <span className="text-neutral-400 text-xs font-medium">
+                      {new Date().toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
 
-                {/* Dots button */}
-                <Dots onClick={(e) => handleMoreOptionsClick(e, todo.id)} />
-              </TodoCard>
-            ))}
-
+                  {/* Dots button */}
+                  <Dots
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleMoreOptionsClick(e, todo.id);
+                    }}
+                  />
+                </TodoCard>
+              ))}
+            </div>
             {/* Modal Options */}
             {openModalId && (
-              <div
+              <Options
                 ref={modalRef}
-                className="z-50 w-36 bg-[#f5f5f5] shadow-md rounded-lg flex flex-col text-sm p-2"
-                style={{
-                  position: "absolute",
-                  top: `${modalPosition.top}px`,
-                  left: `${modalPosition.left}px`,
+                top={modalPosition.top}
+                left={modalPosition.left}
+                mark={() => {
+                  markAsDone(openModalId);
+                  setOpenModalId(null);
                 }}
-              >
-                <button
-                  onClick={() => {
-                    markAsDone(openModalId);
-                    setOpenModalId(null);
-                  }}
-                  className="hover:bg-gray-100 p-2 text-left"
-                >
-                  Mark as done
-                </button>
-                <button
-                  onClick={() => {
-                    const todo = filteredTodos.find(
-                      (t) => t.id === openModalId
-                    );
-                    setEditingTodo(todo);
-                    setShowNoteModal(true);
-                    setOpenModalId(null);
-                  }}
-                  className="hover:bg-gray-100 p-2 text-left"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => {
-                    viewTodo(openModalId);
-                    setOpenModalId(null);
-                  }}
-                  className="hover:bg-gray-100 p-2 text-left"
-                >
-                  View
-                </button>
-                <button
-                  onClick={() => {
-                    deleteTodo(openModalId);
-                    setOpenModalId(null);
-                  }}
-                  className="hover:bg-gray-100 p-2 text-left text-red-500"
-                >
-                  Delete
-                </button>
-              </div>
+                edit={() => {
+                  const todo = filteredTodos.find((t) => t.id === openModalId);
+                  setEditingTodo(todo);
+                  setShowNoteModal(true);
+                  setOpenModalId(null);
+                }}
+                view={() => {
+                  viewTodo(openModalId);
+                  setOpenModalId(null);
+                }}
+                deleteTodo={() => {
+                  deleteTodo(openModalId);
+                  setOpenModalId(null);
+                }}
+              />
             )}
-          </div>
+          </>
         )}
       </div>
     </Suspense>
