@@ -38,9 +38,10 @@ export default function Dashboard() {
   return (
     <div className="bg-[#f5f5f5]">
       <div className="lg:flex lg:justify-between block lg:w-[1500px] ">
+        {/* side bar */}
         <div className="h-screen w-1/5 hidden lg:block ">
           <div
-            className={`border-2 border-red-400 flex flex-col gap-10 py-10 px-4 h-screen
+            className={` bg-white shadow-md flex flex-col gap-10 py-10 px-4 h-screen
             ${showSide ? "w-60" : "w-fit h-fit"} transition-all duration-300`}
           >
             <div
@@ -70,7 +71,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="lg:w-4/5">
-          <div className="lg:w-full border p-5 w-screen relative min-h-screen">
+          <div className="lg:w-full  lg:bg-white p-5 w-screen relative min-h-screen">
             <div className="lg:flex justify-between items-center">
               <div className="flex items-center justify-between">
                 <Logo />
@@ -83,8 +84,8 @@ export default function Dashboard() {
                 <AddModalMd />
               </div>
             </div>
-            <div className="w-full border-2 border-blue-500 flex justify-between gap-10">
-              <div className="lg:w-2/5">
+            <div className="w-full flex justify-between gap-10">
+              <div className="lg:w-2/5 w-full">
                 <Todos />
               </div>
               <div className="h-screen w-3/5 border py-5 hidden lg:block ">

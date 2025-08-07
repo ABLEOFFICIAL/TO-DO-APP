@@ -115,7 +115,7 @@ export default function Todos() {
     <Suspense fallback={<div>Loading...</div>}>
       <div>
         {loading ? (
-          <div className="justify-center flex flex-col items-center h-[40vh] gap-4">
+          <div className=" justify-center flex flex-col items-center h-[40vh] gap-4">
             <p className="text-center text-sm text-gray-500">
               Loading todos...
             </p>
@@ -134,13 +134,13 @@ export default function Todos() {
             <div className="py-5 flex flex-col gap-5 relative">
               {filteredTodos.map((todo) => (
                 <TodoCard key={todo.id} id={todo.id}>
-                  <div className="flex flex-col justify-between w-5/6">
+                  <div className="flex flex-col justify-between items-start w-5/6">
                     <h3 className="text-sm font-semibold">
                       {todo.title.length > 15
                         ? todo.title.slice(0, 15) + "..."
                         : todo.title}
                     </h3>
-                    <p className="text-xs font-normal w-5/6">
+                    <p className="text-xs font-normal text-start w-5/6">
                       {todo.body.length > 80
                         ? todo.body.slice(0, 80) + "..."
                         : todo.body}
