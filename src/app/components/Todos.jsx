@@ -33,12 +33,6 @@ export const Options = forwardRef(function Options(
         Edit
       </button>
 
-      {showView && ( // ✅ conditionally render this block
-        <button onClick={view} className="hover:bg-gray-100 p-2 text-left">
-          View
-        </button>
-      )}
-
       <button
         onClick={deleteTodo}
         className="hover:bg-gray-100 p-2 text-left text-red-500"
@@ -64,6 +58,8 @@ export default function Todos() {
   const [openModalId, setOpenModalId] = useState(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const modalRef = useRef(null);
+  const viewportWidth = window.innerWidth;
+  // const viewportHeight = window.innerHeight;
 
   const handleMoreOptionsClick = (e, todoId) => {
     const modalWidth = 160;
@@ -72,6 +68,7 @@ export default function Todos() {
     const viewportHeight = window.innerHeight;
 
     const buttonRect = e.currentTarget.getBoundingClientRect();
+    console.log(buttonRect);
 
     let left = buttonRect.left + window.scrollX;
     let top = buttonRect.bottom + window.scrollY + 5 - 50;
@@ -130,7 +127,10 @@ export default function Todos() {
             <p className="text-center text-sm text-gray-500">Empty List</p>
           </div>
         ) : (
-          <div className=" h-[calc(100vh-100px)] overflow-y-auto">
+          <div
+            style={{ scrollbarWidth: "none" }}
+            className=" h-[calc(100vh-100px)] overflow-y-auto"
+          >
             <div className="py-5 flex flex-col gap-5 relative">
               {filteredTodos.map((todo) => (
                 <TodoCard key={todo.id} id={todo.id}>
@@ -154,13 +154,15 @@ export default function Todos() {
                   </div>
 
                   {/* Dots button */}
-                  <Dots
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleMoreOptionsClick(e, todo.id);
-                    }}
-                  />
+                  {viewportWidth <= 1024 && (
+                    <Dots
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleMoreOptionsClick(e, todo.id);
+                      }}
+                    />
+                  )}
                 </TodoCard>
               ))}
             </div>

@@ -35,6 +35,8 @@ export const TodoContext = createContext({
   setError: () => {},
   loading: false,
   setLoading: () => {},
+  viewMdOptions: false,
+  setViewMdOptions: () => {},
 });
 
 export const TodoProvider = ({ children }) => {
@@ -50,6 +52,7 @@ export const TodoProvider = ({ children }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [viewMdOptions, setViewMdOptions] = useState(false);
 
   useEffect(() => {
     const fetchTodos = async () => {
@@ -137,7 +140,11 @@ export const TodoProvider = ({ children }) => {
   };
 
   const deleteTodo = (id) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+
+    // 🆕 If the deleted todo is the one being viewed, clear the view
+    setViewingTodoMD((prev) => (prev?.id === id ? null : prev));
+    localStorage.removeItem("todosMD");
   };
 
   const markAsDone = (id) => {
@@ -205,6 +212,8 @@ export const TodoProvider = ({ children }) => {
         setError,
         loading,
         setLoading,
+        viewMdOptions,
+        setViewMdOptions,
       }}
     >
       {children}

@@ -135,6 +135,7 @@ export default function TodoPage({ params }) {
           deleteTodo={() => {
             deleteTodo(openModalId);
             setOpenModalId(null);
+            router.push("/");
           }}
         />
       )}
