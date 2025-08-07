@@ -26,6 +26,7 @@ export const TodoContext = createContext({
   setText: () => {},
   markAsDone: () => {},
   viewTodo: () => {},
+  viewTodoMD: () => {},
   viewingTodo: null,
   setViewingTodo: () => {},
   showViewModal: false,
@@ -45,6 +46,7 @@ export const TodoProvider = ({ children }) => {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
   const [viewingTodo, setViewingTodo] = useState(null);
+  const [viewingTodoMD, setViewingTodoMD] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -159,6 +161,14 @@ export const TodoProvider = ({ children }) => {
     setViewingTodo(selected);
     setShowViewModal(true);
   };
+  const viewTodoMD = (id) => {
+    const selected = todos.find((todo) => todo.id === id);
+    setViewingTodoMD(selected);
+  };
+
+  useEffect(() => {
+    localStorage.setItem("todosMD", JSON.stringify(viewingTodoMD));
+  }, [viewingTodoMD]);
 
   return (
     <TodoContext.Provider
@@ -186,6 +196,9 @@ export const TodoProvider = ({ children }) => {
         viewTodo,
         viewingTodo,
         setViewingTodo,
+        viewTodoMD,
+        viewingTodoMD,
+        setViewingTodoMD,
         showViewModal,
         setShowViewModal,
         error,

@@ -1,12 +1,21 @@
+"use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ViewTodoMd from "./ViewTodoMd";
+import { useContext } from "react";
+import { TodoContext } from "../context/contextProvider";
 
 export default function TodoCard({ children, id }) {
   const router = useRouter();
+  const { viewTodoMD } = useContext(TodoContext);
   const viewTodo = () => {
     console.log(window.screen.width);
 
-    router.push(`/${id}`);
+    if (window.screen.width <= 808) {
+      router.push(`/${id}`);
+    } else {
+      viewTodoMD(id);
+    }
   };
 
   return (

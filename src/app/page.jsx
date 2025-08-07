@@ -11,6 +11,7 @@ import { CgCopy } from "react-icons/cg";
 import { CgBackspace } from "react-icons/cg";
 import { useContext, useState } from "react";
 import { TodoContext } from "./context/contextProvider";
+import ViewTodoMd from "./components/ViewTodoMd";
 
 export default function Dashboard() {
   const [showSide, setShowSide] = useState(false);
@@ -88,8 +89,8 @@ export default function Dashboard() {
               <div className="lg:w-2/5 w-full">
                 <Todos />
               </div>
-              <div className="h-screen w-3/5 border py-5 hidden lg:block ">
-                <GiHamburgerMenu className="hidden lg:block" />
+              <div className="h-screen w-3/5 py-5 hidden lg:block ">
+                <ViewTodoMd />
               </div>
             </div>
           </div>
