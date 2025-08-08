@@ -13,7 +13,7 @@ export default function AddModal() {
 
   return (
     <div
-      className="bg-[#fece1f] p-3 rounded-xl shadow-lg fixed bottom-10 right-10 cursor-pointer z-40 flex justify-between items-center md:hidden"
+      className="bg-[#fece1f] p-3 rounded-xl shadow-lg fixed bottom-10 right-10 cursor-pointer z-40 flex justify-between items-center lg:hidden"
       onClick={showModal}
     >
       <GoPlus className="size-6" />

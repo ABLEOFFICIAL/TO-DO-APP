@@ -58,7 +58,7 @@ export default function Todos() {
   const [openModalId, setOpenModalId] = useState(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const modalRef = useRef(null);
-  const viewportWidth = window.innerWidth;
+
   // const viewportHeight = window.innerHeight;
 
   const handleMoreOptionsClick = (e, todoId) => {
@@ -154,15 +154,14 @@ export default function Todos() {
                   </div>
 
                   {/* Dots button */}
-                  {viewportWidth <= 1024 && (
-                    <Dots
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleMoreOptionsClick(e, todo.id);
-                      }}
-                    />
-                  )}
+
+                  <Dots
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleMoreOptionsClick(e, todo.id);
+                    }}
+                  />
                 </TodoCard>
               ))}
             </div>

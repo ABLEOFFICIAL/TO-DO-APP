@@ -11,7 +11,7 @@ export default function TodoCard({ children, id }) {
   const viewTodo = () => {
     console.log(window.screen.width);
 
-    if (window.screen.width <= 808) {
+    if (window.screen.width <= 1024) {
       router.push(`/${id}`);
     } else {
       viewTodoMD(id);
@@ -22,7 +22,7 @@ export default function TodoCard({ children, id }) {
     <button
       onClick={viewTodo}
       // href={`/${id}`}
-      className="w-full bg-white lg:bg-[#f5f5f5] h-28 rounded-md shadow-sm p-3 flex items-center justify-between"
+      className="w-full bg-white lg:bg-[#f5f5f5] h-28 rounded-md shadow-sm p-3 flex items-center justify-between cursor-pointer"
     >
       {children}
     </button>
