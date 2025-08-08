@@ -57,7 +57,7 @@ export default function Dashboard() {
                   <span
                     key={idx}
                     onClick={() => setFilter(sidebar.value)}
-                    className={`flex items-center ${
+                    className={`flex items-center cursor-pointer ${
                       showSide ? "gap-3" : "gap-0"
                     } 
         ${filter === sidebar.value ? "bg-[#fece1f]" : ""} 
