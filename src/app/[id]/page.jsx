@@ -29,7 +29,9 @@ export default function TodoPage({ params }) {
     router.back();
   };
   useEffect(() => {
-    const todo = todos.find((todo) => todo.id === id);
+    if (!id || todos.length === 0) return;
+
+    const todo = todos.find((todo) => String(todo.id) === String(id));
     setClickedTodo(todo);
   }, [id, todos]);
 
@@ -79,8 +81,8 @@ export default function TodoPage({ params }) {
     setModalPosition({ top, left });
   };
 
-  if (!clickedTodo) return <p>Loading todo...</p>;
-
+  if (!clickedTodo && todos.length === 0) return <p>Loading todo...</p>;
+  if (!clickedTodo) return <p>Todo not found</p>;
   return (
     <div className="min-h-screen p-5 relative">
       {" "}
