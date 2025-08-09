@@ -59,42 +59,30 @@ export const TodoProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // Log localStorage content
-      const storedTodos = localStorage.getItem("todos");
-      console.log("Stored todos in localStorage:", storedTodos);
-
-      if (storedTodos) {
-        try {
-          const parsedTodos = JSON.parse(storedTodos);
-          if (Array.isArray(parsedTodos)) {
-            console.log("Parsed todos from localStorage:", parsedTodos);
-            setTodos(parsedTodos);
-            setLoading(false);
-            return;
-          } else {
-            console.error("Invalid todos format in localStorage, resetting...");
-            localStorage.removeItem("todos"); // Clear corrupted data
-          }
-        } catch (error) {
-          console.error("Failed to parse todos from localStorage:", error);
-          localStorage.removeItem("todos"); // Clear corrupted data
-        }
-      }
-
-      // Fetch from API if no valid localStorage data
       try {
+        const storedTodos = localStorage.getItem("todos");
+        const parsedTodos = storedTodos ? JSON.parse(storedTodos) : null;
+
+        // ✅ Only use localStorage if it's an array with items
+        if (Array.isArray(parsedTodos) && parsedTodos.length > 0) {
+          setTodos(parsedTodos);
+          setLoading(false);
+          return;
+        }
+
+        // ✅ Otherwise, fetch the dummy data
         console.log("Fetching todos from API...");
         const res = await fetch("https://jsonplaceholder.typicode.com/posts");
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
         const data = await res.json();
         const todosWithCompletion = data.slice(0, 100).map((todo) => ({
           ...todo,
           completed: false,
         }));
-        console.log("Fetched todos from API:", todosWithCompletion);
+
         setTodos(todosWithCompletion);
+        localStorage.setItem("todos", JSON.stringify(todosWithCompletion)); // Save for next time
       } catch (error) {
         console.error("Failed to fetch todos:", error);
         setError("Failed to load todos. Please try again later.");
