@@ -61,28 +61,27 @@ export const TodoProvider = ({ children }) => {
 
       try {
         const storedTodos = localStorage.getItem("todos");
-        const parsedTodos = storedTodos ? JSON.parse(storedTodos) : null;
-
-        // ✅ Only use localStorage if it's an array with items
-        if (Array.isArray(parsedTodos) && parsedTodos.length > 0) {
-          setTodos(parsedTodos);
-          setLoading(false);
-          return;
+        if (storedTodos) {
+          const parsedTodos = JSON.parse(storedTodos);
+          if (Array.isArray(parsedTodos) && parsedTodos.length > 0) {
+            setTodos(parsedTodos);
+            setLoading(false);
+            return;
+          }
         }
 
-        // ✅ Otherwise, fetch the dummy data
-        console.log("Fetching todos from API...");
+        // If no valid todos, fetch dummy text
         const res = await fetch("https://jsonplaceholder.typicode.com/posts");
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const data = await res.json();
-        const todosWithCompletion = data.slice(0, 100).map((todo) => ({
+        const todosWithCompletion = data.slice(0, 10).map((todo) => ({
           ...todo,
           completed: false,
         }));
 
         setTodos(todosWithCompletion);
-        localStorage.setItem("todos", JSON.stringify(todosWithCompletion)); // Save for next time
+        localStorage.setItem("todos", JSON.stringify(todosWithCompletion));
       } catch (error) {
         console.error("Failed to fetch todos:", error);
         setError("Failed to load todos. Please try again later.");
