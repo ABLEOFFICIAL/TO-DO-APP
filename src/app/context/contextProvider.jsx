@@ -1,50 +1,16 @@
+// contextProvider.jsx
 "use client";
 
 import { createContext, useState, useEffect } from "react";
 
-export const TodoContext = createContext({
-  sideBar: false,
-  setSideBar: () => {},
-  todos: [],
-  setTodos: () => {},
-  searchQuery: "",
-  setSearchQuery: () => {},
-  filter: "all",
-  setFilter: () => {},
-  filteredTodos: [],
-  toggleTodo: () => {},
-  addTodo: () => {},
-  deleteTodo: () => {},
-  editTodo: () => {},
-  showNoteModal: false,
-  setShowNoteModal: () => {},
-  editingTodo: null,
-  setEditingTodo: () => {},
-  title: "",
-  setTitle: () => {},
-  text: "",
-  setText: () => {},
-  markAsDone: () => {},
-  viewTodo: () => {},
-  viewTodoMD: () => {},
-  viewingTodo: null,
-  setViewingTodo: () => {},
-  showViewModal: false,
-  setShowViewModal: () => {},
-  error: null,
-  setError: () => {},
-  loading: false,
-  setLoading: () => {},
-  viewMdOptions: false,
-  setViewMdOptions: () => {},
-});
+export const TodoContext = createContext({});
 
 export const TodoProvider = ({ children }) => {
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [todos, setTodos] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState("all"); // ✅ Correct usage
+  const [filter, setFilter] = useState("all");
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
   const [viewingTodo, setViewingTodo] = useState(null);
@@ -54,56 +20,123 @@ export const TodoProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [viewMdOptions, setViewMdOptions] = useState(false);
 
-  useEffect(() => {
-    const fetchTodos = async () => {
-      setLoading(true);
+  const fetchTodos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/todos");
+      if (!res.ok) throw new Error(`Failed to fetch todos: ${res.status}`);
+      const data = await res.json();
+      setTodos(
+        data.map((todo) => ({
+          id: String(todo.id), // Ensure string ID
+          title: todo.title || "",
+          body: todo.body || "",
+          completed: todo.completed ?? false,
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to fetch todos:", err);
+      setError("Failed to load todos. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addTodo = async (newTodo) => {
+    try {
+      const res = await fetch("/api/todos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTodo),
+      });
+      if (!res.ok) throw new Error(`Failed to add todo: ${res.status}`);
+      const createdTodo = await res.json();
+      await fetchTodos(); // Sync with server
       setError(null);
+    } catch (err) {
+      console.error("Add todo failed:", err);
+      setError("Failed to add todo. Please try again.");
+    }
+  };
 
-      try {
-        const storedTodos = localStorage.getItem("todos");
-        if (storedTodos) {
-          const parsedTodos = JSON.parse(storedTodos);
-          if (Array.isArray(parsedTodos) && parsedTodos.length > 0) {
-            setTodos(parsedTodos);
-            setLoading(false);
-            return;
-          }
-        }
+  const editTodo = async (updatedTodo) => {
+    try {
+      const id = String(updatedTodo.id);
+      console.log("Sending edit request for:", { id, ...updatedTodo });
+      const res = await fetch(`/api/todos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedTodo),
+      });
+      if (!res.ok) throw new Error(`Failed to edit todo: ${res.status}`);
+      await fetchTodos(); // Sync with server
+      setError(null);
+    } catch (err) {
+      console.error("Edit todo failed:", err);
+      setError("Failed to edit todo. Please try again.");
+    }
+  };
 
-        // If no valid todos, fetch dummy text
-        const res = await fetch("https://jsonplaceholder.typicode.com/posts");
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+  const deleteTodo = async (id) => {
+    try {
+      const res = await fetch(`/api/todos/${String(id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error(`Failed to delete todo: ${res.status}`);
+      await fetchTodos(); // Sync with server
+      setError(null);
+    } catch (err) {
+      console.error("Delete todo failed:", err);
+      setError("Failed to delete todo. Please try again.");
+    }
+  };
 
-        const data = await res.json();
-        const todosWithCompletion = data.slice(0, 10).map((todo) => ({
-          ...todo,
-          completed: false,
-        }));
+  const toggleTodo = async (id) => {
+    try {
+      const todo = todos.find((t) => t.id === String(id));
+      if (!todo) throw new Error("Todo not found");
+      await editTodo({ ...todo, completed: !todo.completed });
+    } catch (err) {
+      console.error("Toggle todo failed:", err);
+      setError("Failed to toggle todo. Please try again.");
+    }
+  };
 
-        setTodos(todosWithCompletion);
-        localStorage.setItem("todos", JSON.stringify(todosWithCompletion));
-      } catch (error) {
-        console.error("Failed to fetch todos:", error);
-        setError("Failed to load todos. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const markAsDone = async (id) => {
+    try {
+      const todo = todos.find((t) => t.id === String(id));
+      if (!todo) throw new Error("Todo not found");
+      await editTodo({ ...todo, completed: true });
+    } catch (err) {
+      console.error("Mark as done failed:", err);
+      setError("Failed to mark todo as done. Please try again.");
+    }
+  };
 
+  const viewTodo = (id) => {
+    const selected = todos.find((todo) => todo.id === String(id));
+    if (selected) {
+      setViewingTodo(selected);
+      setShowViewModal(true);
+    }
+  };
+
+  const viewTodoMD = (id) => {
+    const selected = todos.find((todo) => todo.id === String(id));
+    if (selected) setViewingTodoMD(selected);
+  };
+
+  useEffect(() => {
     fetchTodos();
   }, []);
 
-  useEffect(() => {
-    console.log("Saving todos to localStorage:", todos);
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
-
-  const filteredTodos = todos
+  const filteredTodos = (todos || [])
     .filter((todo) => {
-      const query = searchQuery.toLowerCase();
+      const query = searchQuery?.toLowerCase() || "";
       return (
-        todo.title.toLowerCase().includes(query) ||
-        todo.body.toLowerCase().includes(query)
+        todo.title?.toLowerCase().includes(query) ||
+        todo.body?.toLowerCase().includes(query)
       );
     })
     .filter((todo) => {
@@ -111,58 +144,6 @@ export const TodoProvider = ({ children }) => {
       if (filter === "incomplete") return !todo.completed;
       return true;
     });
-
-  console.log("Filtered todos:", filteredTodos);
-
-  const toggleTodo = (id) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
-  };
-
-  const addTodo = (newTodo) => {
-    setTodos((prevTodos) => [...prevTodos, newTodo]);
-  };
-
-  const deleteTodo = (id) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
-
-    // 🆕 If the deleted todo is the one being viewed, clear the view
-    setViewingTodoMD((prev) => (prev?.id === id ? null : prev));
-    localStorage.removeItem("todosMD");
-  };
-
-  const markAsDone = (id) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: true } : todo
-      )
-    );
-  };
-
-  const editTodo = (updatedTodo) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === updatedTodo.id ? { ...todo, ...updatedTodo } : todo
-      )
-    );
-  };
-
-  const viewTodo = (id) => {
-    const selected = todos.find((todo) => todo.id === id);
-    setViewingTodo(selected);
-    setShowViewModal(true);
-  };
-  const viewTodoMD = (id) => {
-    const selected = todos.find((todo) => todo.id === id);
-    setViewingTodoMD(selected);
-  };
-
-  useEffect(() => {
-    localStorage.setItem("todosMD", JSON.stringify(viewingTodoMD));
-  }, [viewingTodoMD]);
 
   return (
     <TodoContext.Provider
@@ -178,14 +159,10 @@ export const TodoProvider = ({ children }) => {
         filter,
         setFilter,
         filteredTodos,
-        toggleTodo,
         addTodo,
-        deleteTodo,
         editTodo,
-        showNoteModal,
-        setShowNoteModal,
-        editingTodo,
-        setEditingTodo,
+        deleteTodo,
+        toggleTodo,
         markAsDone,
         viewTodo,
         viewingTodo,
@@ -193,6 +170,10 @@ export const TodoProvider = ({ children }) => {
         viewTodoMD,
         viewingTodoMD,
         setViewingTodoMD,
+        showNoteModal,
+        setShowNoteModal,
+        editingTodo,
+        setEditingTodo,
         showViewModal,
         setShowViewModal,
         error,
@@ -207,3 +188,213 @@ export const TodoProvider = ({ children }) => {
     </TodoContext.Provider>
   );
 };
+
+// "use client";
+
+// import { createContext, useState, useEffect } from "react";
+
+// export const TodoContext = createContext({
+//   sideBar: false,
+//   setSideBar: () => {},
+//   todos: [],
+//   setTodos: () => {},
+//   searchQuery: "",
+//   setSearchQuery: () => {},
+//   filter: "all",
+//   setFilter: () => {},
+//   filteredTodos: [],
+//   toggleTodo: () => {},
+//   addTodo: () => {},
+//   deleteTodo: () => {},
+//   editTodo: () => {},
+//   showNoteModal: false,
+//   setShowNoteModal: () => {},
+//   editingTodo: null,
+//   setEditingTodo: () => {},
+//   title: "",
+//   setTitle: () => {},
+//   text: "",
+//   setText: () => {},
+//   markAsDone: () => {},
+//   viewTodo: () => {},
+//   viewTodoMD: () => {},
+//   viewingTodo: null,
+//   setViewingTodo: () => {},
+//   showViewModal: false,
+//   setShowViewModal: () => {},
+//   error: null,
+//   setError: () => {},
+//   loading: false,
+//   setLoading: () => {},
+//   viewMdOptions: false,
+//   setViewMdOptions: () => {},
+// });
+
+// export const TodoProvider = ({ children }) => {
+//   const [title, setTitle] = useState("");
+//   const [text, setText] = useState("");
+//   const [todos, setTodos] = useState([]);
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [filter, setFilter] = useState("all"); // ✅ Correct usage
+//   const [showNoteModal, setShowNoteModal] = useState(false);
+//   const [editingTodo, setEditingTodo] = useState(null);
+//   const [viewingTodo, setViewingTodo] = useState(null);
+//   const [viewingTodoMD, setViewingTodoMD] = useState(null);
+//   const [showViewModal, setShowViewModal] = useState(false);
+//   const [error, setError] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [viewMdOptions, setViewMdOptions] = useState(false);
+
+//   useEffect(() => {
+//     const fetchTodos = async () => {
+//       setLoading(true);
+//       setError(null);
+
+//       try {
+//         const storedTodos = localStorage.getItem("todos");
+//         if (storedTodos) {
+//           const parsedTodos = JSON.parse(storedTodos);
+//           if (Array.isArray(parsedTodos) && parsedTodos.length > 0) {
+//             setTodos(parsedTodos);
+//             setLoading(false);
+//             return;
+//           }
+//         }
+
+//         // If no valid todos, fetch dummy text
+//         const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+//         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+//         const data = await res.json();
+//         const todosWithCompletion = data.slice(0, 10).map((todo) => ({
+//           ...todo,
+//           completed: false,
+//         }));
+
+//         setTodos(todosWithCompletion);
+//         localStorage.setItem("todos", JSON.stringify(todosWithCompletion));
+//       } catch (error) {
+//         console.error("Failed to fetch todos:", error);
+//         setError("Failed to load todos. Please try again later.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchTodos();
+//   }, []);
+
+//   useEffect(() => {
+//     console.log("Saving todos to localStorage:", todos);
+//     localStorage.setItem("todos", JSON.stringify(todos));
+//   }, [todos]);
+
+//   const filteredTodos = todos
+//     .filter((todo) => {
+//       const query = searchQuery.toLowerCase();
+//       return (
+//         todo.title.toLowerCase().includes(query) ||
+//         todo.body.toLowerCase().includes(query)
+//       );
+//     })
+//     .filter((todo) => {
+//       if (filter === "completed") return todo.completed;
+//       if (filter === "incomplete") return !todo.completed;
+//       return true;
+//     });
+
+//   console.log("Filtered todos:", filteredTodos);
+
+//   const toggleTodo = (id) => {
+//     setTodos(
+//       todos.map((todo) =>
+//         todo.id === id ? { ...todo, completed: !todo.completed } : todo
+//       )
+//     );
+//   };
+
+//   const addTodo = (newTodo) => {
+//     setTodos((prevTodos) => [...prevTodos, newTodo]);
+//   };
+
+//   const deleteTodo = (id) => {
+//     setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+
+//     // 🆕 If the deleted todo is the one being viewed, clear the view
+//     setViewingTodoMD((prev) => (prev?.id === id ? null : prev));
+//     localStorage.removeItem("todosMD");
+//   };
+
+//   const markAsDone = (id) => {
+//     setTodos((prevTodos) =>
+//       prevTodos.map((todo) =>
+//         todo.id === id ? { ...todo, completed: true } : todo
+//       )
+//     );
+//   };
+
+//   const editTodo = (updatedTodo) => {
+//     setTodos((prevTodos) =>
+//       prevTodos.map((todo) =>
+//         todo.id === updatedTodo.id ? { ...todo, ...updatedTodo } : todo
+//       )
+//     );
+//   };
+
+//   const viewTodo = (id) => {
+//     const selected = todos.find((todo) => todo.id === id);
+//     setViewingTodo(selected);
+//     setShowViewModal(true);
+//   };
+//   const viewTodoMD = (id) => {
+//     const selected = todos.find((todo) => todo.id === id);
+//     setViewingTodoMD(selected);
+//   };
+
+//   useEffect(() => {
+//     localStorage.setItem("todosMD", JSON.stringify(viewingTodoMD));
+//   }, [viewingTodoMD]);
+
+//   return (
+//     <TodoContext.Provider
+//       value={{
+//         title,
+//         setTitle,
+//         text,
+//         setText,
+//         todos,
+//         setTodos,
+//         searchQuery,
+//         setSearchQuery,
+//         filter,
+//         setFilter,
+//         filteredTodos,
+//         toggleTodo,
+//         addTodo,
+//         deleteTodo,
+//         editTodo,
+//         showNoteModal,
+//         setShowNoteModal,
+//         editingTodo,
+//         setEditingTodo,
+//         markAsDone,
+//         viewTodo,
+//         viewingTodo,
+//         setViewingTodo,
+//         viewTodoMD,
+//         viewingTodoMD,
+//         setViewingTodoMD,
+//         showViewModal,
+//         setShowViewModal,
+//         error,
+//         setError,
+//         loading,
+//         setLoading,
+//         viewMdOptions,
+//         setViewMdOptions,
+//       }}
+//     >
+//       {children}
+//     </TodoContext.Provider>
+//   );
+// };

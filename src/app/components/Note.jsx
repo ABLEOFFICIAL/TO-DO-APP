@@ -2,7 +2,7 @@
 
 import { useContext, useEffect } from "react";
 import { TodoContext } from "../context/contextProvider";
-import { v4 as uuidv4 } from "uuid";
+// import { v4 as uuidv4 } from "uuid";
 
 export default function Note() {
   const {
@@ -29,24 +29,21 @@ export default function Note() {
   const handleSaveNote = () => {
     if (title.trim() === "" && text.trim() === "") return;
 
+    const todoData = {
+      title: title || "",
+      body: text || "",
+      completed: editingTodo ? editingTodo.completed : false,
+    };
+
     if (editingTodo) {
       editTodo({
-        ...editingTodo,
-        title,
-        body: text,
+        id: editingTodo.id, // String ID from server
+        ...todoData,
       });
     } else {
-      const newTodo = {
-        id: uuidv4(),
-        title,
-        body: text,
-        completed: false,
-        createdAt: new Date().toISOString(),
-      };
-      addTodo(newTodo);
+      addTodo(todoData); // Let server assign ID
     }
 
-    // Reset state
     setShowNoteModal(false);
     setEditingTodo(null);
     setTitle("");
