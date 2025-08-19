@@ -1,4 +1,3 @@
-// app/api/todos/[id]/route.js
 import { getTodos, saveTodos } from "@/app/lib/todo";
 import { NextResponse } from "next/server";
 // import { getTodos, saveTodos } from "@/app/lib/todos";
@@ -60,45 +59,3 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
-// PUT → Update todo
-// export async function PUT(request, { params }) {
-//   try {
-//     const { id } = params;
-//     const updatedData = await request.json();
-
-//     const index = todos.findIndex((todo) => todo.id === Number(id));
-//     if (index === -1) {
-//       return NextResponse.json({ error: "Todo not found" }, { status: 404 });
-//     }
-
-//     todos[index] = {
-//       ...todos[index],
-//       ...updatedData,
-//       id: todos[index].id,
-//     };
-
-//     return NextResponse.json(todos[index]);
-//   } catch (err) {
-//     console.error("PUT error:", err);
-//     return NextResponse.json({ error: err.message }, { status: 500 });
-//   }
-// }
-
-// // DELETE → Remove todo
-// export async function DELETE(request, { params }) {
-//   try {
-//     const { id } = params;
-//     const index = todos.findIndex((todo) => todo.id === Number(id));
-
-//     if (index === -1) {
-//       return NextResponse.json({ error: "Todo not found" }, { status: 404 });
-//     }
-
-//     todos.splice(index, 1);
-//     return NextResponse.json({ message: "Todo deleted" });
-//   } catch (err) {
-//     console.error("DELETE error:", err);
-//     return NextResponse.json({ error: err.message }, { status: 500 });
-//   }
-// }

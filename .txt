@@ -631,3 +631,90 @@ body {
 - If errors persist, check the browser console for specific mismatches and verify that the JSON data is correctly embedded.
 
 This updated code resolves the hydration mismatch by ensuring consistent rendering, integrates your components with the required functionality, and maintains your folder structure. Let me know if you encounter further issues or need additional features!
+
+
+//context folder
+// // GET → Fetch todos
+// export async function GET() {
+//   return NextResponse.json(todos);
+// }
+
+// // POST → Add new todo
+// export async function POST(request) {
+//   try {
+//     const newTodo = await request.json();
+//     todos.push({
+//       id: Date.now(),
+//       title: newTodo.title || "",
+//       body: newTodo.body || "",
+//       completed: false,
+//     });
+//     return NextResponse.json(todos[todos.length - 1]);
+//   } catch (err) {
+//     console.error("POST error:", err);
+//     return NextResponse.json({ error: err.message }, { status: 500 });
+//   }
+// }
+
+// export async function POST(request) {
+//   const newTodo = await request.json();
+
+//   const res = await fetch(BASE_URL, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify(newTodo),
+//   });
+
+//   const data = await res.json();
+
+//   return NextResponse.json(data, {
+//     headers: { "Content-Type": "application/json" },
+//   });
+// }
+
+
+
+// app/api/todos/[id]/route.js
+
+
+// PUT → Update todo
+// export async function PUT(request, { params }) {
+//   try {
+//     const { id } = params;
+//     const updatedData = await request.json();
+
+//     const index = todos.findIndex((todo) => todo.id === Number(id));
+//     if (index === -1) {
+//       return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+//     }
+
+//     todos[index] = {
+//       ...todos[index],
+//       ...updatedData,
+//       id: todos[index].id,
+//     };
+
+//     return NextResponse.json(todos[index]);
+//   } catch (err) {
+//     console.error("PUT error:", err);
+//     return NextResponse.json({ error: err.message }, { status: 500 });
+//   }
+// }
+
+// // DELETE → Remove todo
+// export async function DELETE(request, { params }) {
+//   try {
+//     const { id } = params;
+//     const index = todos.findIndex((todo) => todo.id === Number(id));
+
+//     if (index === -1) {
+//       return NextResponse.json({ error: "Todo not found" }, { status: 404 });
+//     }
+
+//     todos.splice(index, 1);
+//     return NextResponse.json({ message: "Todo deleted" });
+//   } catch (err) {
+//     console.error("DELETE error:", err);
+//     return NextResponse.json({ error: err.message }, { status: 500 });
+//   }
+// }
