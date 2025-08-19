@@ -25,6 +25,7 @@ export async function POST(request) {
       title: newTodo.title || "",
       body: newTodo.body || "",
       completed: false,
+      createdAt: Date.now(),
     };
 
     todos.push(createdTodo);

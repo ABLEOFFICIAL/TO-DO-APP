@@ -65,6 +65,7 @@ export const TodoProvider = ({ children }) => {
         title: newTodo.title || "",
         body: newTodo.body || "",
         completed: false,
+        createdAt: Date.now(),
       };
       const updatedTodos = [...todos, createdTodo];
       saveTodos(updatedTodos);

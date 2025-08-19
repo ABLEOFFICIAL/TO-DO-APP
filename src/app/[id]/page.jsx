@@ -33,6 +33,7 @@ export default function TodoPage({ params }) {
 
     const todo = todos.find((todo) => String(todo.id) === String(id));
     setClickedTodo(todo);
+    console.log(clickedTodo);
   }, [id, todos]);
 
   useEffect(() => {
