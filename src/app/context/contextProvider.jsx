@@ -20,15 +20,15 @@ export const TodoProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [viewMdOptions, setViewMdOptions] = useState(false);
 
-  const fetchTodos = async () => {
+  // Load todos from localStorage on mount
+  const fetchTodos = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/todos");
-      if (!res.ok) throw new Error(`Failed to fetch todos: ${res.status}`);
-      const data = await res.json();
+      const storedTodos = localStorage.getItem("todos");
+      const parsedTodos = storedTodos ? JSON.parse(storedTodos) : [];
       setTodos(
-        data.map((todo) => ({
+        parsedTodos.map((todo) => ({
           id: String(todo.id), // Ensure string ID
           title: todo.title || "",
           body: todo.body || "",
@@ -36,23 +36,38 @@ export const TodoProvider = ({ children }) => {
         }))
       );
     } catch (err) {
-      console.error("Failed to fetch todos:", err);
+      console.error("Failed to load todos:", err);
       setError("Failed to load todos. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const addTodo = async (newTodo) => {
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  // Save todos to localStorage
+  const saveTodos = (newTodos) => {
     try {
-      const res = await fetch("/api/todos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTodo),
-      });
-      if (!res.ok) throw new Error(`Failed to add todo: ${res.status}`);
-      const createdTodo = await res.json();
-      await fetchTodos(); // Sync with server
+      localStorage.setItem("todos", JSON.stringify(newTodos));
+      setTodos(newTodos);
+    } catch (err) {
+      console.error("Failed to save todos:", err);
+      setError("Failed to save todos. Please try again.");
+    }
+  };
+
+  const addTodo = (newTodo) => {
+    try {
+      const createdTodo = {
+        id: Date.now().toString(), // Server-like string ID
+        title: newTodo.title || "",
+        body: newTodo.body || "",
+        completed: false,
+      };
+      const updatedTodos = [...todos, createdTodo];
+      saveTodos(updatedTodos);
       setError(null);
     } catch (err) {
       console.error("Add todo failed:", err);
@@ -60,17 +75,28 @@ export const TodoProvider = ({ children }) => {
     }
   };
 
-  const editTodo = async (updatedTodo) => {
+  const editTodo = (updatedTodo) => {
     try {
       const id = String(updatedTodo.id);
-      console.log("Sending edit request for:", { id, ...updatedTodo });
-      const res = await fetch(`/api/todos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedTodo),
-      });
-      if (!res.ok) throw new Error(`Failed to edit todo: ${res.status}`);
-      await fetchTodos(); // Sync with server
+      console.log("Editing todo:", { id, ...updatedTodo });
+      const updatedTodos = todos.map((todo) =>
+        todo.id === id
+          ? {
+              ...todo,
+              title:
+                updatedTodo.title !== undefined
+                  ? updatedTodo.title
+                  : todo.title,
+              body:
+                updatedTodo.body !== undefined ? updatedTodo.body : todo.body,
+              completed:
+                updatedTodo.completed !== undefined
+                  ? updatedTodo.completed
+                  : todo.completed,
+            }
+          : todo
+      );
+      saveTodos(updatedTodos);
       setError(null);
     } catch (err) {
       console.error("Edit todo failed:", err);
@@ -78,13 +104,10 @@ export const TodoProvider = ({ children }) => {
     }
   };
 
-  const deleteTodo = async (id) => {
+  const deleteTodo = (id) => {
     try {
-      const res = await fetch(`/api/todos/${String(id)}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error(`Failed to delete todo: ${res.status}`);
-      await fetchTodos(); // Sync with server
+      const updatedTodos = todos.filter((todo) => todo.id !== String(id));
+      saveTodos(updatedTodos);
       setError(null);
     } catch (err) {
       console.error("Delete todo failed:", err);
@@ -92,22 +115,22 @@ export const TodoProvider = ({ children }) => {
     }
   };
 
-  const toggleTodo = async (id) => {
+  const toggleTodo = (id) => {
     try {
       const todo = todos.find((t) => t.id === String(id));
       if (!todo) throw new Error("Todo not found");
-      await editTodo({ ...todo, completed: !todo.completed });
+      editTodo({ ...todo, completed: !todo.completed });
     } catch (err) {
       console.error("Toggle todo failed:", err);
       setError("Failed to toggle todo. Please try again.");
     }
   };
 
-  const markAsDone = async (id) => {
+  const markAsDone = (id) => {
     try {
       const todo = todos.find((t) => t.id === String(id));
       if (!todo) throw new Error("Todo not found");
-      await editTodo({ ...todo, completed: true });
+      editTodo({ ...todo, completed: true });
     } catch (err) {
       console.error("Mark as done failed:", err);
       setError("Failed to mark todo as done. Please try again.");
@@ -126,10 +149,6 @@ export const TodoProvider = ({ children }) => {
     const selected = todos.find((todo) => todo.id === String(id));
     if (selected) setViewingTodoMD(selected);
   };
-
-  useEffect(() => {
-    fetchTodos();
-  }, []);
 
   const filteredTodos = (todos || [])
     .filter((todo) => {
